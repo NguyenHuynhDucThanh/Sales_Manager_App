@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "368160375980",
+    "project_id": "app-ban-hang-mini",
+    "storage_bucket": "app-ban-hang-mini.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368160375980:android:5b331c226a088ad8d88b09",
+        "android_client_info": {
+          "package_name": "com.example.sales_manager_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPMoNkHVxyxEXxBDOEL8hS_-brZAKrSlE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

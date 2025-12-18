@@ -1,0 +1,14 @@
+import 'product.dart';
+
+class CartItem {
+  final Product product;
+  int quantity;
+
+  CartItem({
+    required this.product,
+    this.quantity = 1,
+  });
+
+  // Tính tổng tiền của item này (Giá x Số lượng)
+  double get total => product.price * quantity;
+}

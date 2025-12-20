@@ -5,31 +5,31 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/models/product.dart';
 import '../../core/models/cart_item.dart';
-import '../products/product_provider.dart';
+import '../products/product_provider.dart'; // Đảm bảo import file này
 import 'cart_provider.dart';
 import 'cart_screen.dart';
-import '../orders/order_history_screen.dart'; // Đã có import này là chuẩn rồi
+import '../orders/order_history_screen.dart';
 
 class SalesScreen extends ConsumerWidget {
   const SalesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productState = ref.watch(productListProvider);
+    // 👇 SỬA 1: Nghe danh sách ĐÃ LỌC thay vì danh sách gốc
+    final productState = ref.watch(filteredProductListProvider);
+    
     final cart = ref.watch(cartProvider);
     final totalAmount = ref.watch(cartTotalProvider);
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
     return Scaffold(
-      // 👇 ĐÃ SỬA PHẦN APPBAR TẠI ĐÂY 👇
       appBar: AppBar(
         title: const Text('Bán Hàng (POS)'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history), // Icon hình cái đồng hồ
+            icon: const Icon(Icons.history),
             tooltip: 'Lịch sử đơn hàng',
             onPressed: () {
-              // Chuyển sang màn hình Lịch sử đơn hàng
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
@@ -38,19 +38,43 @@ class SalesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      // 👆 KẾT THÚC PHẦN SỬA 👆
-      
       body: Column(
         children: [
+          // 👇 SỬA 2: THÊM THANH TÌM KIẾM Ở ĐÂY
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm sản phẩm...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                filled: true,
+                fillColor: Colors.grey[100],
+              ),
+              // ... Trong TextField
+              onChanged: (value) {
+                ref.read(productSearchQueryProvider.notifier).setSearch(value);
+              },
+            ),
+          ),
+          
+          // Danh sách sản phẩm (Logic hiển thị giữ nguyên)
           Expanded(
             child: productState.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, stack) => Center(child: Text('Lỗi: $err')),
               data: (products) {
-                 if (products.isEmpty) return const Center(child: Text("Chưa có sản phẩm nào"));
+                 if (products.isEmpty) {
+                   return const Center(
+                     child: Text("Không tìm thấy sản phẩm nào", style: TextStyle(color: Colors.grey)),
+                   );
+                 }
                  
                  return GridView.builder(
-                   padding: const EdgeInsets.all(10),
+                   padding: const EdgeInsets.symmetric(horizontal: 10),
                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                      crossAxisCount: 2, 
                      childAspectRatio: 0.8, 
@@ -65,6 +89,8 @@ class SalesScreen extends ConsumerWidget {
               },
             ),
           ),
+
+          // Thanh giỏ hàng (Giữ nguyên)
           if (cart.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(16),
@@ -88,7 +114,6 @@ class SalesScreen extends ConsumerWidget {
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () {
-                      // Chuyển sang màn hình Giỏ hàng
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const CartScreen()),
@@ -104,6 +129,7 @@ class SalesScreen extends ConsumerWidget {
     );
   }
 
+  // Widget _buildProductCard giữ nguyên như cũ
   Widget _buildProductCard(BuildContext context, WidgetRef ref, Product product) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     
@@ -113,22 +139,17 @@ class SalesScreen extends ConsumerWidget {
       orElse: () => CartItem(product: product, quantity: 0)
     );
 
-    // Kiểm tra hết hàng
     final bool isOutOfStock = product.stock <= 0;
 
     return Card(
       elevation: 2,
-      // Nếu hết hàng thì làm mờ thẻ đi
       color: isOutOfStock ? Colors.grey[200] : Colors.white,
       child: InkWell(
-        // Nếu hết hàng thì không cho bấm (onTap = null)
         onTap: isOutOfStock ? null : () {
-          // Gọi hàm thêm vào giỏ và nhận kết quả
           final success = ref.read(cartProvider.notifier).addToCart(product);
           
           if (!success) {
-            // Nếu trả về false -> Hiện thông báo
-            ScaffoldMessenger.of(context).hideCurrentSnackBar(); // Ẩn cái cũ nếu có
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text("Chỉ còn ${product.stock} sản phẩm trong kho!"),
@@ -147,7 +168,6 @@ class SalesScreen extends ConsumerWidget {
                   child: ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                     child: ColorFiltered(
-                      // Nếu hết hàng thì chuyển ảnh sang trắng đen
                       colorFilter: isOutOfStock 
                           ? const ColorFilter.mode(Colors.grey, BlendMode.saturation)
                           : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
@@ -170,7 +190,6 @@ class SalesScreen extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis, 
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          // Nếu hết hàng thì gạch ngang tên
                           decoration: isOutOfStock ? TextDecoration.lineThrough : null,
                           color: isOutOfStock ? Colors.grey : Colors.black,
                         )
@@ -193,7 +212,6 @@ class SalesScreen extends ConsumerWidget {
               ],
             ),
             
-            // Dán nhãn "HẾT HÀNG" đè lên trên ảnh
             if (isOutOfStock)
               Positioned.fill(
                 child: Container(

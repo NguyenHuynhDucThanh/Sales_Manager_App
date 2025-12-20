@@ -31,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  // 👇 Xử lý Đăng ký (Hàm mới)
+  // Xử lý Đăng ký (Hàm mới)
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);

@@ -1,16 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/product.dart';
 import '../../core/repositories/product_repository.dart';
-// QUAN TRỌNG: Phải có dòng này mới tìm thấy file repository mới
-import '../../core/repositories/firestore_product_repository.dart'; 
+import '../../core/repositories/firestore_product_repository.dart';
 
 // 1. Provider cung cấp Repository
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
-  // return MockProductRepository(); // <-- Cái cũ
-  return FirestoreProductRepository(); // <-- Cái mới
+  return FirestoreProductRepository();
 });
 
-// 2. Provider quản lý Danh sách sản phẩm
+// 2. Provider quản lý Danh sách sản phẩm (Gốc)
 final productListProvider = AsyncNotifierProvider<ProductListNotifier, List<Product>>(() {
   return ProductListNotifier();
 });
@@ -34,17 +32,16 @@ class ProductListNotifier extends AsyncNotifier<List<Product>> {
       return _fetchProducts();
     });
   }
-
-    // 👇 Thêm hàm này
+  
   Future<void> updateProduct(Product p) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final repo = ref.read(productRepositoryProvider);
-      await repo.updateProduct(p); // Gọi hàm update bên repo
-      return _fetchProducts(); // Tải lại danh sách mới
+      await repo.updateProduct(p);
+      return _fetchProducts();
     });
   }
-  
+
   Future<void> deleteProduct(String id) async {
      state = const AsyncValue.loading();
      state = await AsyncValue.guard(() async {
@@ -54,3 +51,36 @@ class ProductListNotifier extends AsyncNotifier<List<Product>> {
      });
   }
 }
+
+// 3. Provider lưu từ khóa tìm kiếm (Dùng Notifier thay cho StateProvider)
+final productSearchQueryProvider = NotifierProvider<ProductSearchQueryNotifier, String>(() {
+  return ProductSearchQueryNotifier();
+});
+
+class ProductSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() {
+    return ''; // Giá trị mặc định là rỗng
+  }
+
+  // Hàm để cập nhật từ khóa
+  void setSearch(String query) {
+    state = query;
+  }
+}
+
+// 4. Provider trả về danh sách ĐÃ LỌC (Filtered List)
+// (Đoạn này giữ nguyên, không cần sửa gì cả)
+final filteredProductListProvider = Provider<AsyncValue<List<Product>>>((ref) {
+  final productState = ref.watch(productListProvider); // Lấy list gốc
+  
+  // Lưu ý: ref.watch(productSearchQueryProvider) vẫn trả về String như cũ
+  final query = ref.watch(productSearchQueryProvider).toLowerCase(); 
+
+  return productState.whenData((products) {
+    if (query.isEmpty) {
+      return products; 
+    }
+    return products.where((p) => p.name.toLowerCase().contains(query)).toList();
+  });
+});

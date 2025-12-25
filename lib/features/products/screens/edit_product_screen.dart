@@ -173,30 +173,90 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       ),
                     ],
                   ),
-                const SizedBox(height: 30),
-                Consumer<EditProductViewModel>(
-                  builder: (context, viewModel, child) {
-                    return SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: viewModel.isLoading ? null : () => _handleUpdate(viewModel),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: viewModel.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('CẬP NHẬT', style: TextStyle(fontSize: 18)),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                  // Update Button
+                  Consumer<EditProductViewModel>(
+                    builder: (context, viewModel, child) {
+                      return Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: viewModel.isLoading ? null : () => _handleUpdate(viewModel),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber[700], // Orange/Amber for update
+                                foregroundColor: Colors.white,
+                              ),
+                              child: viewModel.isLoading
+                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  : const Text('CẬP NHẬT', style: TextStyle(fontSize: 18)),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton.icon(
+                              onPressed: viewModel.isLoading ? null : _handleDelete,
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              label: const Text('XÓA SẢN PHẨM', style: TextStyle(color: Colors.red, fontSize: 16)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.red),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
+    );
+  }
+
+  Future<void> _handleDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa sản phẩm?'),
+        content: Text('Bạn có chắc chắn muốn xóa "${widget.product.name}" không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Xóa'),
+          ),
+        ],
       ),
     );
+
+    if (confirmed == true && mounted) {
+      final productListViewModel = context.read<ProductListViewModel>();
+      final success = await productListViewModel.deleteProduct(widget.product.id);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã xóa sản phẩm')),
+          );
+          Navigator.pop(context); // Pop edit screen
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lỗi: ${productListViewModel.errorMessage ?? "Không thể xóa"}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }

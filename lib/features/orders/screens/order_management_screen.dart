@@ -169,6 +169,9 @@ class _OrderManagementScreenState extends State<OrderManagementScreen>
             Tab(icon: Icon(Icons.check_circle), text: 'Đã xác nhận'),
             Tab(icon: Icon(Icons.cancel), text: 'Đã hủy'),
           ],
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
         ),
       ),
       body: Consumer<OrderManagementViewModel>(

@@ -99,7 +99,7 @@ class CartScreen extends StatelessWidget {
                       return Card(
                         color: isSelected ? AppColors.primaryLight.withOpacity(0.1) : AppColors.surface,
                         child: Padding(
-                          padding: EdgeInsets.all(AppSpacing.md),
+                          padding: EdgeInsets.all(AppSpacing.sm),
                           child: Row(
                             children: [
                               // Checkbox
@@ -133,7 +133,7 @@ class CartScreen extends StatelessWidget {
                                         child: const Icon(Icons.inventory_2, size: 35),
                                       ),
                               ),
-                              SizedBox(width: AppSpacing.md),
+                              SizedBox(width: AppSpacing.sm),
                               
                               // Product info
                               Expanded(

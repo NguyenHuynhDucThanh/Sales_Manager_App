@@ -129,12 +129,17 @@ class OrderDetailScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(
-            value, 
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              fontSize: isBold ? 16 : 14,
-              color: color ?? Colors.black,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value, 
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: isBold ? 16 : 14,
+                color: color ?? Colors.black,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -53,11 +53,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
     
     viewModel.setStock(_stockController.text);
 
-    // Generate new avatar URL
-    final name = _nameController.text.trim();
-    final firstLetter = name.isNotEmpty ? name[0].toUpperCase() : 'P';
-    final imageUrl = "https://ui-avatars.com/api/?size=200&background=random&color=fff&font-size=0.6&name=$firstLetter";
-    viewModel.setImageUrl(imageUrl);
+    viewModel.setStock(_stockController.text);
+    // Image URL is updated via onChanged
 
     final success = await viewModel.updateProduct();
 
@@ -91,55 +88,91 @@ class _EditProductScreenState extends State<EditProductScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // Placeholder - không thể thay đổi ảnh
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: widget.product.imageUrl != null 
-                        ? Image.network(widget.product.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 50))
-                        : const Icon(Icons.image, size: 50, color: Colors.grey),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Tên sản phẩm', border: OutlineInputBorder()),
-                  validator: (v) => v!.isEmpty ? 'Nhập tên' : null,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _priceController,
-                        decoration: const InputDecoration(
-                          labelText: 'Giá bán (VD: 10.000)',
-                          border: OutlineInputBorder(),
-                          suffixText: 'đ',
+                  // Image Preview
+                  Consumer<EditProductViewModel>(
+                    builder: (context, viewModel, child) {
+                      return Container(
+                        width: 150,
+                        height: 150,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey),
                         ),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [CurrencyInputFormatter()],
-                        validator: (v) => v!.isEmpty ? 'Nhập giá' : null,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: viewModel.imageUrl != null && viewModel.imageUrl!.isNotEmpty
+                              ? Image.network(
+                                  viewModel.imageUrl!, 
+                                  fit: BoxFit.cover, 
+                                  errorBuilder: (_, __, ___) => const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                                      Text("Lỗi ảnh", style: TextStyle(color: Colors.grey)),
+                                    ],
+                                  ),
+                                )
+                              : const Icon(Icons.image, size: 50, color: Colors.grey),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Image URL Input for Edit
+                  Consumer<EditProductViewModel>(
+                    builder: (context, viewModel, child) {
+                      return TextFormField(
+                        initialValue: viewModel.imageUrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Link ảnh sản phẩm',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.link),
+                        ),
+                        onChanged: (value) {
+                          viewModel.setImageUrl(value);
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Tên sản phẩm', border: OutlineInputBorder()),
+                    validator: (v) => v!.isEmpty ? 'Nhập tên' : null,
+                    onChanged: (value) => context.read<EditProductViewModel>().setName(value),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _priceController,
+                          decoration: const InputDecoration(
+                            labelText: 'Giá bán (VD: 10.000)',
+                            border: OutlineInputBorder(),
+                            suffixText: 'đ',
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [CurrencyInputFormatter()],
+                          validator: (v) => v!.isEmpty ? 'Nhập giá' : null,
+                          onChanged: (value) => context.read<EditProductViewModel>().setPrice(value),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _stockController,
-                        decoration: const InputDecoration(labelText: 'Tồn kho', border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        validator: (v) => v!.isEmpty ? 'Nhập số' : null,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _stockController,
+                          decoration: const InputDecoration(labelText: 'Tồn kho', border: OutlineInputBorder()),
+                          keyboardType: TextInputType.number,
+                          validator: (v) => v!.isEmpty ? 'Nhập số' : null,
+                          onChanged: (value) => context.read<EditProductViewModel>().setStock(value),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 30),
                 Consumer<EditProductViewModel>(
                   builder: (context, viewModel, child) {

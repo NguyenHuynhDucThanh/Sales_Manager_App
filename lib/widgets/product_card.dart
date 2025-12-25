@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../core/models/product.dart';
 import '../theme/app_colors.dart';
@@ -42,19 +43,27 @@ class ProductCard extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        product.imageUrl!,
+                    ? CachedNetworkImage(
+                        imageUrl: product.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppColors.surfaceVariant,
-                            child: Icon(
-                              Icons.image,
-                              size: 48,
-                              color: AppColors.textHint,
+                        placeholder: (context, url) => Container(
+                          color: AppColors.surfaceVariant,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                          );
-                        },
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.surfaceVariant,
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: AppColors.textHint,
+                          ),
+                        ),
                       )
                     : Container(
                         color: AppColors.surfaceVariant,
@@ -143,11 +152,14 @@ class ProductListTile extends StatelessWidget {
           child: product.imageUrl != null
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  child: Image.network(
-                    product.imageUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: product.imageUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error),
+                    placeholder: (context, url) => Container(
+                      color: AppColors.surfaceVariant,
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(Icons.broken_image),
                   ),
                 )
               : const Icon(Icons.image, color: AppColors.textHint),

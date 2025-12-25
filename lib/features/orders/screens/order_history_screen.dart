@@ -62,6 +62,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
             title: const Text('Đơn hàng của tôi'),
             bottom: TabBar(
               controller: _tabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              indicatorColor: Colors.white,
               tabs: [
                 const Tab(icon: Icon(Icons.pending_actions), text: 'Chờ xác nhận'),
                 const Tab(icon: Icon(Icons.check_circle), text: 'Đã xác nhận'),

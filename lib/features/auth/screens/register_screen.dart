@@ -5,35 +5,43 @@ import '../../../theme/app_text_styles.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/widgets.dart';
 import '../viewmodels/auth_viewmodel.dart';
-import 'register_screen.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
     
     final viewModel = context.read<AuthViewModel>();
-    final success = await viewModel.signIn(
+    final success = await viewModel.signUp(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
-    if (!success && mounted) {
-      _showError(viewModel.errorMessage ?? 'Đăng nhập thất bại');
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Đăng ký thành công! Đang vào App..."),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Pop RegisterScreen to return to the root (which AuthWrapper will update to Dashboard)
+      Navigator.of(context).pop();
+    } else if (!success && mounted) {
+      _showError(viewModel.errorMessage ?? 'Đăng ký thất bại');
     }
   }
-
-
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -44,6 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -52,10 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.storefront, size: 100, color: AppColors.primary),
-                SizedBox(height: AppSpacing.lg),
+                Icon(Icons.person_add, size: 80, color: AppColors.primary),
+                SizedBox(height: AppSpacing.md),
                 Text(
-                  "SALES MANAGER",
+                  "TẠO TÀI KHOẢN",
                   style: AppTextStyles.h1.copyWith(color: AppColors.primary),
                 ),
                 SizedBox(height: AppSpacing.xl),
@@ -76,6 +92,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: true,
                   validator: (val) => val!.length < 6 ? "Mật khẩu phải > 6 ký tự" : null,
                 ),
+                SizedBox(height: AppSpacing.md),
+
+                 AppTextField(
+                  controller: _confirmPasswordController,
+                  labelText: "Nhập lại Mật khẩu",
+                  prefixIcon: Icons.lock_outline,
+                  obscureText: true,
+                  validator: (val) {
+                    if (val!.isEmpty) return "Nhập lại mật khẩu";
+                    if (val != _passwordController.text) return "Mật khẩu không khớp";
+                    return null;
+                  },
+                ),
                 SizedBox(height: AppSpacing.lg),
 
                 Consumer<AuthViewModel>(
@@ -84,9 +113,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 50,
                       child: AppButton(
-                        label: "ĐĂNG NHẬP",
+                        label: "ĐĂNG KÝ NGAY",
                         isLoading: viewModel.isLoading,
-                        onPressed: _handleLogin,
+                        onPressed: _handleSignUp,
                       ),
                     );
                   },
@@ -94,20 +123,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 SizedBox(height: AppSpacing.md),
 
-                SizedBox(height: AppSpacing.md),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Chưa có tài khoản? "),
+                    const Text("Đã có tài khoản? "),
                     TextButton(
-                      onPressed: () {
-                         Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                        );
-                      },
-                      child: Text("Đăng ký ngay", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text("Đăng nhập", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                     )
                   ],
                 )
